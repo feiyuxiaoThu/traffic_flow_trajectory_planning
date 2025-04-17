@@ -136,6 +136,7 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
   ${THIRD_PARTY_INCLUDE_DIRS}
   ${OOQP_INCLUDE_DIRS}
+  /home/echo/Ros/spatio-temporal/src/traffic_flow_trajectory_planning/local_planning/thirdparty
 )
 
 ## Declare a C++ library
