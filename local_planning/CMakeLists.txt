@@ -29,6 +29,8 @@ if(NOT OOQP_FOUND)
     message(FATAL_ERROR "OOQP not found.")
 endif()
 
+find_package(Osqp REQUIRED)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -136,7 +138,6 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
   ${THIRD_PARTY_INCLUDE_DIRS}
   ${OOQP_INCLUDE_DIRS}
-  /home/echo/Ros/spatio-temporal/src/traffic_flow_trajectory_planning/local_planning/thirdparty
 )
 
 ## Declare a C++ library
@@ -168,6 +169,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${OOQP_LIBRARIES}
+  osqp::osqp
 )
 
 #############
