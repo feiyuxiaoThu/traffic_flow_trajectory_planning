@@ -4,7 +4,7 @@
 #include "semantic.hpp"
 #include "spline.hpp"
 #include "ooqp_interface.hpp"
-#include "OsqpEigen/OsqpEigen.h"
+//#include "OsqpEigen/OsqpEigen.h"
 #include <boost/icl/interval_set.hpp>
 #include <Eigen/SparseCore>
 #include <queue>
