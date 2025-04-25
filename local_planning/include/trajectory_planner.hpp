@@ -933,7 +933,7 @@ class TrajectoryPlanner {
 
        
         Eigen::SparseMatrix<double> Q_s = Q_cp.sparseView();
-        Eigen::SparseMatrix<double> AA_s = AA_cp.sparseView();
+        Eigen::SparseMatrix<double> AA_s = C_dense.sparseView();
 
         Q_s.makeCompressed();
         AA_s.makeCompressed();
@@ -956,17 +956,18 @@ class TrajectoryPlanner {
             u_osqp(i) = ubd(i-total_num_eq_constraints);
             l_osqp(i) = lbd(i-total_num_eq_constraints);
         }
-
+        /*
         for (int i =0; i < total_num_eq_constraints+total_num_ineq; i++) {
             std::cout << " i =" << i << "up - lo bound" << u_osqp(i) - l_osqp(i) << std::endl;
             
         }
+           */ 
         
         std::cout << "constraint size" << total_num_eq_constraints+total_num_ineq << std::endl;
         //std::cout << "upper - lower bound =" << u_osqp[252] << l_osqp[252] << std::endl;
         
         IOSQP qpSolver_;
-        qpSolver_.setMats(Q_s, c, AA_s, l_osqp, u_osqp, 1e-3, 1e-3);
+        qpSolver_.setMats(Q_s, c, AA_s, lbd, ubd, 1e-3, 1e-3);
         qpSolver_.solve();
         int ret = qpSolver_.getStatus();
         if (ret != 1) {

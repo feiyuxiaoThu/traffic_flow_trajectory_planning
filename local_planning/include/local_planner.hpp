@@ -35,9 +35,13 @@ class LocalPlanner {
         // 得到自身车辆语义信息
         Vehicle local_ego_vehicle = raw_ego_vehicle;
         State local_ego_vehicle_state = local_ego_vehicle.state();
+        std::cout << "ego vehicle state: " << std::endl;
+        local_ego_vehicle_state.print();
         local_ego_vehicle.set_state(local_ego_vehicle_state);
         SemanticVehicle semantic_ego_vehicle;
         semantic_ego_vehicle.vehicle = local_ego_vehicle;
+        std::cout << "semantic ego vehicle state: " << std::endl;
+        semantic_ego_vehicle.vehicle.print();
         if (this->GetNearestLaneIdUsingState(semantic_ego_vehicle.vehicle.state().ToXYTheta(), semantic_lane_set, &semantic_ego_vehicle.nearest_lane_id, &semantic_ego_vehicle.dist_to_lane, &semantic_ego_vehicle.arc_len_onlane, &semantic_ego_vehicle.angle_diff_onlane) != kSuccess) {
             throw;
         } else {
@@ -269,6 +273,9 @@ class LocalPlanner {
             vehicle_state.angle = vehicle.orientation;
             vehicle_state.velocity = vehicle.speed;
             semantic_vehicle.vehicle.set_state(vehicle_state);
+            //finish read
+            std::cout << "semantic vehicle state i: " << vehicle.id << std::endl;
+            semantic_vehicle.vehicle.print();
             // 根据坐标判断车辆是否属于考虑范围
             double dist = sqrt(std::pow(vehicle_state.vec_position(0) - semantic_ego_vehicle.vehicle.state().vec_position(0), 2.0) + std::pow(vehicle_state.vec_position(1) - semantic_ego_vehicle.vehicle.state().vec_position(1), 2.0));
             if (dist > this->range_) {
@@ -502,6 +509,12 @@ class LocalPlanner {
                 // }
                 raw_samples.push_back(sample_point);
             }
+            std::cout << "raw samples size: " << raw_samples.size() << std::endl;
+            std::cout << "raw sample with lane refline points input are as follows: " << std::endl;
+            for (auto sample: raw_samples) {
+                std::cout << sample<< std::endl;
+            }
+            
             // 进行采样
             vec_Vecf<LaneDim> samples;
             for (double index = 0; static_cast<int>(index) < raw_samples.size(); index += static_cast<double>(raw_samples.size() - 1) / 6.0) {
