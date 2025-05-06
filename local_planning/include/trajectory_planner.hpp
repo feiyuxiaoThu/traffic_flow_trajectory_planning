@@ -3,7 +3,7 @@
 
 #include "semantic.hpp"
 #include "spline.hpp"
-#include "ooqp_interface.hpp"
+#include "osqp_interface.hpp"
 //#include "OsqpEigen/OsqpEigen.h"
 #include <boost/icl/interval_set.hpp>
 #include <Eigen/SparseCore>
@@ -894,7 +894,7 @@ class TrajectoryPlanner {
         Eigen::VectorXd x;
         x.setZero(total_num_vals);
         std::cout << "we loop here" << std::endl;
-        if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
+        if (!OsqpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
             printf("trajectory generation solver failed.\n");
             return kWrongStatus;
         }
@@ -905,80 +905,7 @@ class TrajectoryPlanner {
         std::cout << "term 4: " << x.transpose() * Q4 * x + c4.transpose() * x << std::endl;
         std::cout << "term 5: " << x.transpose() * Q5 * x + c5.transpose() * x << std::endl;
 
-        // OSQP Eigen
-        constexpr double tolerance = 1e-4;
-        // 创建一个稀疏矩阵
         
-        
-        Eigen::SparseMatrix<double,Eigen::RowMajor> sparseIdentity_sparse(total_num_vals, total_num_vals);
-        sparseIdentity_sparse.reserve(Eigen::VectorXi::Constant(total_num_vals, 1));
-        for (int i = 0; i < total_num_vals; ++i) {
-            sparseIdentity_sparse.insert(i, i) = 1.0;
-        }
-        sparseIdentity_sparse.makeCompressed();
-        
-        Eigen::MatrixXd identity_matrix(total_num_vals, total_num_vals);
-        identity_matrix.setIdentity();
-        //std::cout << identity_matrix;
-
-        //auto Q_cp = Q.toDense();
-        //auto C_cp = C.toDense();
-
-        Eigen::MatrixXd Q_cp = Eigen::MatrixXd(Q);
-        //Eigen::MatrixXd AA_cp = Eigen::MatrixXd(A).vstack(Eigen::MatrixXd(C)); //+ identity_matrix;
-        Eigen::MatrixXd A_dense = Eigen::MatrixXd(A);
-        Eigen::MatrixXd C_dense = Eigen::MatrixXd(C);
-
-        Eigen::MatrixXd AA_cp(A_dense.rows()+C_dense.rows(),C_dense.cols());
-
-       
-        Eigen::SparseMatrix<double> Q_s = Q_cp.sparseView();
-        Eigen::SparseMatrix<double> AA_s = C_dense.sparseView();
-
-        Q_s.makeCompressed();
-        AA_s.makeCompressed();
-
-        Eigen::VectorXd u_osqp,l_osqp;
-        u_osqp.resize(total_num_eq_constraints+total_num_ineq);
-        l_osqp.resize(total_num_eq_constraints+total_num_ineq);
-        u_osqp.setZero();
-        l_osqp.setZero();
-    
-
-        for (int i =0; i < total_num_eq_constraints; i++) {
-            //std::cout << " i =" << i << "up - lo bound" << ubd(i) - lbd(i) << std::endl;
-            u_osqp(i) = b(i);
-            l_osqp(i) = b(i);
-        }
-
-        for (int i =total_num_eq_constraints; i < total_num_eq_constraints+total_num_ineq; i++) {
-            //std::cout << " i =" << i << "up - lo bound" << ubd(i) - lbd(i) << std::endl;
-            u_osqp(i) = ubd(i-total_num_eq_constraints);
-            l_osqp(i) = lbd(i-total_num_eq_constraints);
-        }
-        /*
-        for (int i =0; i < total_num_eq_constraints+total_num_ineq; i++) {
-            std::cout << " i =" << i << "up - lo bound" << u_osqp(i) - l_osqp(i) << std::endl;
-            
-        }
-           */ 
-        
-        std::cout << "constraint size" << total_num_eq_constraints+total_num_ineq << std::endl;
-        //std::cout << "upper - lower bound =" << u_osqp[252] << l_osqp[252] << std::endl;
-        
-        IOSQP qpSolver_;
-        qpSolver_.setMats(Q_s, c, AA_s, lbd, ubd, 1e-3, 1e-3);
-        qpSolver_.solve();
-        int ret = qpSolver_.getStatus();
-        if (ret != 1) {
-          std::cout << "error code : " << ret << std::endl;
-          ROS_ERROR("fail to solve QP!");
-          
-        }
-
-        Eigen::VectorXd sol = qpSolver_.getPrimalSol();
-        Eigen::VectorXd optval = Eigen::Map<const Eigen::VectorXd>(sol.data(),total_num_vals);
-          
 
         //Eigen::SparseMatrix<double, Eigen::RowMajor> A_osqp = A_cp + C_cp + sparseIdentity_sparse;//Eigen::MatrixXd(A)  + Eigen::MatrixXd(C) + identity_matrix;
         //A_osqp.makeCompressed();
