@@ -12,7 +12,9 @@
 #include "frenet_bezier_traj.hpp"
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
-#include "iosqp.hpp"
+//#include "iosqp.hpp"
+#include <glog/logging.h>
+
 // 行为规划
 class TrajectoryPlanner {
  public:
@@ -316,6 +318,7 @@ class TrajectoryPlanner {
         start_constraints.push_back(Vecf<N_DIM>(init_ego_vehicle_fs.vec_s[2], init_ego_vehicle_fs.vec_dt[2]));
         for (auto voxel_sequence_with_cost: voxel_sequences_with_cost) {
             std::vector<Node> voxel_sequence = voxel_sequence_with_cost.first;
+            LOG(INFO) << "we begin voxel_sequence loop";
             while (true) {
                 std::cout << "************* voxel sequence: *************" << std::endl;
                 for (auto voxel_node: voxel_sequence) {
@@ -905,10 +908,12 @@ class TrajectoryPlanner {
 
         bool osqp_init = true;
         if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
-            printf("trajectory generation solver failed.\n");
+            printf("trajectory generation ooqp solver failed.\n");
+            LOG(INFO) << "trajectory generation ooqp solver failed." ;
             osqp_init = false;
             return kWrongStatus;
         }
+        LOG(INFO) << "trajectory generation ooqp solver succeed." ;
         std::cout << "result x: " << x.transpose() << std::endl;
         std::cout << "term 1: " << x.transpose() * Q1 * x + c1.transpose() * x << std::endl;
         std::cout << "term 2: " << x.transpose() * Q2 * x + c2.transpose() * x << std::endl;

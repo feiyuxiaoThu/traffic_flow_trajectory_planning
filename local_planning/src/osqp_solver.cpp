@@ -2,6 +2,7 @@
 #include <iostream>
 #include "calculation.hpp"
 #include "osqp_interface/osqp_interface.h"
+#include <glog/logging.h>
 
 using namespace Eigen;
 using namespace std;
@@ -122,10 +123,12 @@ bool OsqpItf::solveqp(const Eigen::SparseMatrix<double, Eigen::RowMajor>& Q, con
 
     if(value_qp != 1){
         std::cout << "QP OSQP STATUS IS" << value_qp << std::endl;
+        LOG(INFO) << "trajectory generation osqp solver failed." ;
         return false;
     }
     else{
         std::cout << "QP OSQP STATUS IS" << value_qp << std::endl;
+        LOG(INFO) << "trajectory generation osqp solver succeed." ;
         return true;
     }
 

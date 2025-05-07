@@ -1,10 +1,19 @@
 #include "local_planning_node.hpp"
+#include <glog/logging.h>
 
 int main(int argv, char** argc) {
     ros::init(argv, argc, "local_planning_node");
     std::shared_ptr<LocalPlanningNode> local_planning_node_ptr = std::make_shared<LocalPlanningNode>();
     std::cout << "input anything to start" << std::endl;
     getchar();
+
+    google::InitGoogleLogging(argc[0]);
+    // 配置日志输出到文件
+    FLAGS_log_dir = "/home/ros/spatio_temporal/my_app_logs";
+    FLAGS_logtostderr = false;
+    FLAGS_minloglevel = 0; // 输出 INFO 及以上级别
+    LOG(INFO) << "Begin program";
+
     // std::string root_path = ros::package::getPath("local_planning") + "/record/";
     // if (std::filesystem::exists(std::filesystem::path(root_path))) {
     //     std::filesystem::remove_all(std::filesystem::path(root_path));
@@ -31,5 +40,6 @@ int main(int argv, char** argc) {
     } else {
         std::cout << "test failed" << std::endl;
     }
+    google::ShutdownGoogleLogging();
     return 0;
 }

@@ -29,7 +29,7 @@ if(NOT OOQP_FOUND)
     message(FATAL_ERROR "OOQP not found.")
 endif()
 find_package(Osqp REQUIRED)
-
+find_package(Glog REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -169,7 +169,7 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${OOQP_LIBRARIES}
   osqp::osqp
-  osqp::osqp
+  glog
 )
 
 #############

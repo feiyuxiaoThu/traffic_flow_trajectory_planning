@@ -7,6 +7,7 @@
 #include "simulator/Vehicle.h"
 #include "semantic.hpp"
 #include "trajectory_planner.hpp"
+#include <glog/logging.h>
 
 // 局部规划器
 class LocalPlanner {
