@@ -10,6 +10,7 @@
 #include "frenet_bezier_traj.hpp"
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <glog/logging.h>
 
 // 行为规划
 class TrajectoryPlanner {
@@ -33,6 +34,10 @@ class TrajectoryPlanner {
 
     template<int N_DEG, int N_DIM>
     ErrorType planOnce(const SemanticVehicle &semantic_ego_vehicle, const SemanticLaneSet &semantic_lane_set, const SemanticVehicleSet &surr_semantic_vehicle_set, const LateralBehavior &desire_behavior, FrenetBezierTrajectory<N_DEG,N_DIM> &planned_trajectory) const {
+
+        
+
+        
         // 进行栅格生成
         std::vector<std::vector<Voxel>> voxels;
         if (this->voxelGeneration(semantic_ego_vehicle, semantic_lane_set, surr_semantic_vehicle_set, voxels) != kSuccess) {
@@ -80,6 +85,7 @@ class TrajectoryPlanner {
                         if (voxel_sequences_with_cost.at(j).first.back().voxel_.behavior_ == frenet_bezier_splines.at(i).first) {
                             double cur_cost = voxel_sequences_with_cost.at(j).second;
                             std::cout << "behaivor " << static_cast<int>(frenet_bezier_splines.at(i).first) << " cost is " << cur_cost << std::endl;
+                            LOG(INFO) << "behaivor " << static_cast<int>(frenet_bezier_splines.at(i).first) << " cost is " << cur_cost;
                             if (cur_cost < min_cost) {
                                 min_cost = cur_cost;
                                 planned_trajectory = frenet_bezier_splines.at(i).second;
@@ -111,6 +117,7 @@ class TrajectoryPlanner {
             }
         }
         return kSuccess;
+        
     }
  
  private:
@@ -327,6 +334,8 @@ class TrajectoryPlanner {
                 std::cout << "start contraints:\n" << start_constraints[0] << "; " << start_constraints[1] << "; " << start_constraints[2] << std::endl;
                 // 进行贝塞尔轨迹生成
                 BezierSpline<N_DEG, N_DIM> bezier_spline;
+                LOG(INFO) << "LOOP trajectoryGenerationWithVoxels";
+                LOG(INFO) << "start contraints:\n" << start_constraints[0] << "; " << start_constraints[1] << "; " << start_constraints[2];
                 if (this->trajectoryGenerationWithVoxels<N_DEG, N_DIM>(semantic_ego_vehicle, voxel_sequence, start_constraints, expected_end_pos, expected_end_vel, bezier_spline) == kSuccess) {
                     // 调试信息
                     Vec2f start_0d, start_1d, start_2d, end_0d, end_1d, inter_0d, inter_1d, inter_2d;
@@ -867,8 +876,10 @@ class TrajectoryPlanner {
         x.setZero(total_num_vals);
         if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
             printf("trajectory generation solver failed.\n");
+            LOG(INFO) << "trajectory generation solver failed.";
             return kWrongStatus;
         }
+        LOG(INFO) << "trajectory generation solver succced.";
         // std::cout << "result x: " << x.transpose() << std::endl;
         std::cout << "term 1: " << x.transpose() * Q1 * x + c1.transpose() * x << std::endl;
         std::cout << "term 2: " << x.transpose() * Q2 * x + c2.transpose() * x << std::endl;

@@ -10,12 +10,12 @@
 #include <limits>     // std::numeric_limits
 #include <stdexcept>
 
-#include "ooqp/GondzioSolver.h"
-#include "ooqp/QpGenData.h"
-#include "ooqp/QpGenResiduals.h"
-#include "ooqp/QpGenSparseMa27.h"
-#include "ooqp/QpGenVars.h"
-#include "ooqp/Status.h"
+#include "GondzioSolver.h"
+#include "QpGenData.h"
+#include "QpGenResiduals.h"
+#include "QpGenSparseMa27.h"
+#include "QpGenVars.h"
+#include "Status.h"
 
 class OoQpItf {
  public:
