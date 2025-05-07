@@ -169,6 +169,7 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${OOQP_LIBRARIES}
   osqp::osqp
+  osqp::osqp
 )
 
 #############

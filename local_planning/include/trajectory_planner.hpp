@@ -12,7 +12,7 @@
 #include "frenet_bezier_traj.hpp"
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
-
+#include "iosqp.hpp"
 // 行为规划
 class TrajectoryPlanner {
  public:
@@ -864,6 +864,33 @@ class TrajectoryPlanner {
         Eigen::VectorXd u = std::numeric_limits<double>::max() * Eigen::VectorXd::Ones(total_num_vals);
         Eigen::VectorXd l = (-u.array()).matrix();
 
+    
+
+        /*
+        OsqpEigen::Solver solver;
+        solver.settings()->setVerbosity(true);
+        solver.settings()->setAlpha(1.0);
+        // This is required to avoid non-deterministic non-accurate solutions
+        solver.settings()->setPolish(true);
+
+        solver.data()->setNumberOfVariables(total_num_vals);
+        solver.data()->setHessianMatrix(Q);
+
+        solver.data()->setNumberOfConstraints(total_num_eq_constraints+total_num_ineq+total_num_vals);
+      
+        solver.data()->setLinearConstraintsMatrix(A_osqp);
+        solver.data()->setLowerBound(l_osqp);
+        solver.data()->setUpperBound(u_osqp);
+
+        solver.initSolver();
+
+        solver.solveProblem() == OsqpEigen::ErrorExitFlag::NoError;
+        
+        //expectedSolution << 0.3, 0.7;
+        auto solution = solver.getSolution();
+        std::cout << "solution osqp: " << solution << std::endl;
+        */
+
         // 进行优化
         Eigen::VectorXd x;
         x.setZero(total_num_vals);
@@ -882,7 +909,7 @@ class TrajectoryPlanner {
             osqp_init = false;
             return kWrongStatus;
         }
-        // std::cout << "result x: " << x.transpose() << std::endl;
+        std::cout << "result x: " << x.transpose() << std::endl;
         std::cout << "term 1: " << x.transpose() * Q1 * x + c1.transpose() * x << std::endl;
         std::cout << "term 2: " << x.transpose() * Q2 * x + c2.transpose() * x << std::endl;
         std::cout << "term 3: " << x.transpose() * Q3 * x + c3.transpose() * x << std::endl;
