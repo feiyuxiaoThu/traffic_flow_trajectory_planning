@@ -3,7 +3,7 @@ project(local_planning)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++17)
-
+add_compile_options(-fno-stack-protector)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -28,6 +28,7 @@ find_package(OOQP REQUIRED)
 if(NOT OOQP_FOUND)
     message(FATAL_ERROR "OOQP not found.")
 endif()
+find_package(Osqp REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -151,7 +152,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/local_planning_node.cpp src/lane.cpp src/ooqp_interface.cpp src/state_transformer.cpp src/shape.cpp)
+add_executable(${PROJECT_NAME}_node src/local_planning_node.cpp src/lane.cpp src/osqp_solver.cpp src/ooqp_interface.cpp src/state_transformer.cpp src/shape.cpp src/osqp_interface/osqp_interface.cpp src/osqp_interface/csc_matrix_conv.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -167,6 +168,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${OOQP_LIBRARIES}
+  osqp::osqp
 )
 
 #############

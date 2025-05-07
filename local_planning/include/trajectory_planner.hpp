@@ -3,7 +3,9 @@
 
 #include "semantic.hpp"
 #include "spline.hpp"
+//#include "osqp_interface.hpp"
 #include "ooqp_interface.hpp"
+#include "osqp_solver.hpp"
 #include <boost/icl/interval_set.hpp>
 #include <Eigen/SparseCore>
 #include <queue>
@@ -865,8 +867,19 @@ class TrajectoryPlanner {
         // 进行优化
         Eigen::VectorXd x;
         x.setZero(total_num_vals);
+        auto QQ = Q;
+        auto AA = A;
+        auto CC = C;
+
+        auto cc = c;
+        auto bb = b;
+        auto lbdlbd = lbd;
+        auto ubdubd = ubd;
+
+        bool osqp_init = true;
         if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
             printf("trajectory generation solver failed.\n");
+            osqp_init = false;
             return kWrongStatus;
         }
         // std::cout << "result x: " << x.transpose() << std::endl;
@@ -875,6 +888,22 @@ class TrajectoryPlanner {
         std::cout << "term 3: " << x.transpose() * Q3 * x + c3.transpose() * x << std::endl;
         std::cout << "term 4: " << x.transpose() * Q4 * x + c4.transpose() * x << std::endl;
         std::cout << "term 5: " << x.transpose() * Q5 * x + c5.transpose() * x << std::endl;
+        
+        
+        Eigen::VectorXd xx;
+        xx.setZero(total_num_vals);
+        
+        if (osqp_init){
+            OsqpItf::solveqp(Q, c, A, b, C, lbd, ubd, l, u, xx, true, false);
+        }
+        
+        for (int i = 0; i< Q.rows(); i++){
+            std::cout << "solve res" << i << "x = " << x(i) << "xx = " << xx(i) << std::endl;
+        }
+        
+        
+
+
 
         // 进行贝塞尔曲线构建
         std::vector<double> vec_domain;
