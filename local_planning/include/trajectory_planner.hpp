@@ -3,7 +3,8 @@
 
 #include "semantic.hpp"
 #include "spline.hpp"
-#include "ooqp_interface.hpp"
+#include "osqp_interface.hpp"
+//#include "OsqpEigen/OsqpEigen.h"
 #include <boost/icl/interval_set.hpp>
 #include <Eigen/SparseCore>
 #include <queue>
@@ -871,10 +872,38 @@ class TrajectoryPlanner {
         Eigen::VectorXd u = std::numeric_limits<double>::max() * Eigen::VectorXd::Ones(total_num_vals);
         Eigen::VectorXd l = (-u.array()).matrix();
 
+    
+
+        /*
+        OsqpEigen::Solver solver;
+        solver.settings()->setVerbosity(true);
+        solver.settings()->setAlpha(1.0);
+        // This is required to avoid non-deterministic non-accurate solutions
+        solver.settings()->setPolish(true);
+
+        solver.data()->setNumberOfVariables(total_num_vals);
+        solver.data()->setHessianMatrix(Q);
+
+        solver.data()->setNumberOfConstraints(total_num_eq_constraints+total_num_ineq+total_num_vals);
+      
+        solver.data()->setLinearConstraintsMatrix(A_osqp);
+        solver.data()->setLowerBound(l_osqp);
+        solver.data()->setUpperBound(u_osqp);
+
+        solver.initSolver();
+
+        solver.solveProblem() == OsqpEigen::ErrorExitFlag::NoError;
+        
+        //expectedSolution << 0.3, 0.7;
+        auto solution = solver.getSolution();
+        std::cout << "solution osqp: " << solution << std::endl;
+        */
+
         // 进行优化
         Eigen::VectorXd x;
         x.setZero(total_num_vals);
-        if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
+        std::cout << "we loop here" << std::endl;
+        if (!OsqpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
             printf("trajectory generation solver failed.\n");
             LOG(INFO) << "trajectory generation solver failed.";
             return kWrongStatus;
@@ -886,6 +915,13 @@ class TrajectoryPlanner {
         std::cout << "term 3: " << x.transpose() * Q3 * x + c3.transpose() * x << std::endl;
         std::cout << "term 4: " << x.transpose() * Q4 * x + c4.transpose() * x << std::endl;
         std::cout << "term 5: " << x.transpose() * Q5 * x + c5.transpose() * x << std::endl;
+
+        
+
+        //Eigen::SparseMatrix<double, Eigen::RowMajor> A_osqp = A_cp + C_cp + sparseIdentity_sparse;//Eigen::MatrixXd(A)  + Eigen::MatrixXd(C) + identity_matrix;
+        //A_osqp.makeCompressed();
+        //Eigen::SparseMatrix<double> A_osqp = A_osqp_dense.sparseView();
+        //std::cout << "A_osqp osqp sparse" << Eigen::MatrixXd(A_cp)<< std::endl;
 
         // 进行贝塞尔曲线构建
         std::vector<double> vec_domain;
