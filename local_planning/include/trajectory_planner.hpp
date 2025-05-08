@@ -3,7 +3,7 @@
 
 #include "semantic.hpp"
 #include "spline.hpp"
-#include "osqp_interface.hpp"
+#include "ooqp_interface.hpp"
 //#include "OsqpEigen/OsqpEigen.h"
 #include <boost/icl/interval_set.hpp>
 #include <Eigen/SparseCore>
@@ -903,7 +903,7 @@ class TrajectoryPlanner {
         Eigen::VectorXd x;
         x.setZero(total_num_vals);
         std::cout << "we loop here" << std::endl;
-        if (!OsqpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
+        if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
             printf("trajectory generation solver failed.\n");
             LOG(INFO) << "trajectory generation solver failed.";
             return kWrongStatus;
