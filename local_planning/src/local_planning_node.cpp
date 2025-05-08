@@ -8,7 +8,7 @@ int main(int argv, char** argc) {
     getchar();
     google::InitGoogleLogging(argc[0]);
     // 配置日志输出到文件
-    FLAGS_log_dir = "/home/ros/spatio_temporal/my_app_logs";
+    FLAGS_log_dir = "/home/feiyushaw/Desktop/github/ros/spatio-temporal/my_app_logs";
     FLAGS_logtostderr = false;
     FLAGS_minloglevel = 0; // 输出 INFO 及以上级别
     LOG(INFO) << "程序启动。";

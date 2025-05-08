@@ -4,7 +4,7 @@
 #include "semantic.hpp"
 #include "spline.hpp"
 #include "ooqp_interface.hpp"
-//#include "OsqpEigen/OsqpEigen.h"
+#include "piqp_interface.hpp"
 #include <boost/icl/interval_set.hpp>
 #include <Eigen/SparseCore>
 #include <queue>
@@ -12,6 +12,7 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <glog/logging.h>
+#include <chrono>
 
 // 行为规划
 class TrajectoryPlanner {
@@ -872,38 +873,33 @@ class TrajectoryPlanner {
         Eigen::VectorXd u = std::numeric_limits<double>::max() * Eigen::VectorXd::Ones(total_num_vals);
         Eigen::VectorXd l = (-u.array()).matrix();
 
-    
-
-        /*
-        OsqpEigen::Solver solver;
-        solver.settings()->setVerbosity(true);
-        solver.settings()->setAlpha(1.0);
-        // This is required to avoid non-deterministic non-accurate solutions
-        solver.settings()->setPolish(true);
-
-        solver.data()->setNumberOfVariables(total_num_vals);
-        solver.data()->setHessianMatrix(Q);
-
-        solver.data()->setNumberOfConstraints(total_num_eq_constraints+total_num_ineq+total_num_vals);
-      
-        solver.data()->setLinearConstraintsMatrix(A_osqp);
-        solver.data()->setLowerBound(l_osqp);
-        solver.data()->setUpperBound(u_osqp);
-
-        solver.initSolver();
-
-        solver.solveProblem() == OsqpEigen::ErrorExitFlag::NoError;
-        
-        //expectedSolution << 0.3, 0.7;
-        auto solution = solver.getSolution();
-        std::cout << "solution osqp: " << solution << std::endl;
-        */
 
         // 进行优化
         Eigen::VectorXd x;
         x.setZero(total_num_vals);
+        Eigen::VectorXd xx;
+        xx.setZero(total_num_vals);
+
         std::cout << "we loop here" << std::endl;
-        if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
+        
+        bool ooqp_status = false;
+        bool piqp_status = false;
+        auto start_time = std::chrono::high_resolution_clock::now();
+        piqp_status = PiQpltf::solve(Q, c, A, b, C, lbd, ubd, l, u, xx, true, false);
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto piqpduration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        std::cout << "piqp duration: " << piqpduration << std::endl;
+
+        start_time = std::chrono::high_resolution_clock::now();
+        ooqp_status = OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false);
+        end_time = std::chrono::high_resolution_clock::now();
+        auto ooqpduration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        std::cout << "ooqp duration: " << ooqpduration << std::endl;
+
+        LOG(INFO) << "ooqp duration: " << ooqpduration << "piqp duration: " << piqpduration<<   std::endl;
+        
+
+        if (!ooqp_status) {
             printf("trajectory generation solver failed.\n");
             LOG(INFO) << "trajectory generation solver failed.";
             return kWrongStatus;
@@ -916,7 +912,10 @@ class TrajectoryPlanner {
         std::cout << "term 4: " << x.transpose() * Q4 * x + c4.transpose() * x << std::endl;
         std::cout << "term 5: " << x.transpose() * Q5 * x + c5.transpose() * x << std::endl;
 
-        
+        for (int i = 0; i< Q.rows(); i++){
+            std::cout << "solve res" << i << " x = " << x(i) << " xx = " << xx(i) << std::endl;
+            LOG(INFO) << "solve res" << i << " x = " << x(i) << " xx = " << xx(i) ;
+        }
 
         //Eigen::SparseMatrix<double, Eigen::RowMajor> A_osqp = A_cp + C_cp + sparseIdentity_sparse;//Eigen::MatrixXd(A)  + Eigen::MatrixXd(C) + identity_matrix;
         //A_osqp.makeCompressed();
