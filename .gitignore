@@ -1,2 +1,5 @@
 *.pyc
 *.log
+*.INFO.*
+*.INFO
+.vscode/settings.json

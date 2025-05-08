@@ -101,8 +101,8 @@ bool OsqpItf::solveqp(const Eigen::SparseMatrix<double, Eigen::RowMajor>& Q, con
     osqp::OSQPInterface qp_solver_;
     qp_solver_.updateMaxIter(10000);
     qp_solver_.updateRhoInterval(0);  // 0 means automatic
-    qp_solver_.updateEpsRel(1.0e-6);  // def: 1.0e-4
-    qp_solver_.updateEpsAbs(1.0e-6);  // def: 1.0e-4
+    qp_solver_.updateEpsRel(1.0e-3);  // def: 1.0e-4
+    qp_solver_.updateEpsAbs(1.0e-3);  // def: 1.0e-4
     qp_solver_.updateVerbose(false);
 
     // solve the QP problem
@@ -120,7 +120,7 @@ bool OsqpItf::solveqp(const Eigen::SparseMatrix<double, Eigen::RowMajor>& Q, con
     }
     std::cout << "we are here x new" << x << std::endl;
 
-
+    LOG(INFO) << "trajectory generation osqp solver statue is" << value_qp;
     if(value_qp != 1){
         std::cout << "QP OSQP STATUS IS" << value_qp << std::endl;
         LOG(INFO) << "trajectory generation osqp solver failed." ;

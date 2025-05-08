@@ -6,6 +6,7 @@
 //#include "osqp_interface.hpp"
 #include "ooqp_interface.hpp"
 #include "osqp_solver.hpp"
+#include "piqp_interface.hpp"
 #include <boost/icl/interval_set.hpp>
 #include <Eigen/SparseCore>
 #include <queue>
@@ -906,8 +907,13 @@ class TrajectoryPlanner {
         auto lbdlbd = lbd;
         auto ubdubd = ubd;
 
+        Eigen::VectorXd xx;
+        xx.setZero(total_num_vals);
+        
+        PiQpltf::solve(QQ, cc, AA, bb, CC, lbdlbd, ubdubd, l, u, x, true, false);
+
         bool osqp_init = true;
-        if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false)) {
+        if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, xx, true, false)) {
             printf("trajectory generation ooqp solver failed.\n");
             LOG(INFO) << "trajectory generation ooqp solver failed." ;
             osqp_init = false;
@@ -921,16 +927,11 @@ class TrajectoryPlanner {
         std::cout << "term 4: " << x.transpose() * Q4 * x + c4.transpose() * x << std::endl;
         std::cout << "term 5: " << x.transpose() * Q5 * x + c5.transpose() * x << std::endl;
         
-        
-        Eigen::VectorXd xx;
-        xx.setZero(total_num_vals);
-        
-        if (osqp_init){
-            OsqpItf::solveqp(Q, c, A, b, C, lbd, ubd, l, u, xx, true, false);
-        }
+      
         
         for (int i = 0; i< Q.rows(); i++){
             std::cout << "solve res" << i << "x = " << x(i) << "xx = " << xx(i) << std::endl;
+            LOG(INFO) << "solve res" << i << "x = " << x(i) << "xx = " << xx(i) ;
         }
         
         

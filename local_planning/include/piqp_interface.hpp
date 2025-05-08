@@ -1,5 +1,5 @@
-#ifndef SOLVER_OOQP_INTERFACE_HPP_
-#define SOLVER_OOQP_INTERFACE_HPP_
+#ifndef SOLVER_PIQP_INTERFACE_HPP_
+#define SOLVER_PIQP_INTERFACE_HPP_
 
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
@@ -10,10 +10,9 @@
 #include <limits>     // std::numeric_limits
 #include <stdexcept>
 
-#include "iosqp.hpp"
+#include "piqp/piqp.hpp"
 
-
-class OsqpItf {
+class PiQpltf{
  public:
     /*!
     * Solve min 1/2 x' Q x + c' x, such that A x = b, d <= Cx <= f, and l <= x <=
@@ -42,12 +41,13 @@ class OsqpItf {
     * @param [out] lowerLimit
     * @param [out] upperLimit
     */
-
+   
     static void printProblemFormulation(const Eigen::SparseMatrix<double, Eigen::RowMajor>& Q, const Eigen::VectorXd& c, const Eigen::SparseMatrix<double, Eigen::RowMajor>& A, const Eigen::VectorXd& b, const Eigen::SparseMatrix<double, Eigen::RowMajor>& C, const Eigen::VectorXd& d, const Eigen::VectorXd& f, const Eigen::VectorXd& l, const Eigen::VectorXd& u);
 
     static void printLimits(const Eigen::Matrix<char, Eigen::Dynamic, 1>& useLowerLimit, const Eigen::Matrix<char, Eigen::Dynamic, 1>& useUpperLimit, const Eigen::VectorXd& lowerLimit, const Eigen::VectorXd& upperLimit);
 
     static void printSolution(const int status, const Eigen::VectorXd& x);
 };
+
 
 #endif  // SOLVER_OOQP_INTERFACE_HPP_
