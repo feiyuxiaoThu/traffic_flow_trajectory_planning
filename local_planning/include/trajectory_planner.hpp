@@ -69,6 +69,7 @@ class TrajectoryPlanner {
         }
         // 进行轨迹选择
         std::cout << "desire_behavior: " << static_cast<int>(desire_behavior) << std::endl;
+        LOG(INFO) << "desire_behavior: " << static_cast<int>(desire_behavior);
         if (frenet_bezier_splines.size() == 1) {
             // 只有一条轨迹，直接选择
             planned_trajectory = frenet_bezier_splines.front().second;
@@ -85,6 +86,7 @@ class TrajectoryPlanner {
                         if (voxel_sequences_with_cost.at(j).first.back().voxel_.behavior_ == frenet_bezier_splines.at(i).first) {
                             double cur_cost = voxel_sequences_with_cost.at(j).second;
                             std::cout << "behaivor " << static_cast<int>(frenet_bezier_splines.at(i).first) << " cost is " << cur_cost << std::endl;
+                            LOG(INFO) << "behaivor " << static_cast<int>(frenet_bezier_splines.at(i).first) << " cost is " << cur_cost;
                             if (cur_cost < min_cost) {
                                 min_cost = cur_cost;
                                 planned_trajectory = frenet_bezier_splines.at(i).second;
@@ -868,32 +870,6 @@ class TrajectoryPlanner {
         Eigen::VectorXd u = std::numeric_limits<double>::max() * Eigen::VectorXd::Ones(total_num_vals);
         Eigen::VectorXd l = (-u.array()).matrix();
 
-    
-
-        /*
-        OsqpEigen::Solver solver;
-        solver.settings()->setVerbosity(true);
-        solver.settings()->setAlpha(1.0);
-        // This is required to avoid non-deterministic non-accurate solutions
-        solver.settings()->setPolish(true);
-
-        solver.data()->setNumberOfVariables(total_num_vals);
-        solver.data()->setHessianMatrix(Q);
-
-        solver.data()->setNumberOfConstraints(total_num_eq_constraints+total_num_ineq+total_num_vals);
-      
-        solver.data()->setLinearConstraintsMatrix(A_osqp);
-        solver.data()->setLowerBound(l_osqp);
-        solver.data()->setUpperBound(u_osqp);
-
-        solver.initSolver();
-
-        solver.solveProblem() == OsqpEigen::ErrorExitFlag::NoError;
-        
-        //expectedSolution << 0.3, 0.7;
-        auto solution = solver.getSolution();
-        std::cout << "solution osqp: " << solution << std::endl;
-        */
 
         // 进行优化
         Eigen::VectorXd x;
@@ -910,10 +886,24 @@ class TrajectoryPlanner {
         Eigen::VectorXd xx;
         xx.setZero(total_num_vals);
         
-        PiQpltf::solve(QQ, cc, AA, bb, CC, lbdlbd, ubdubd, l, u, x, true, false);
+        bool osqp_status = false;
+        bool ooqp_status = false;
+
+        auto start_piqp = std::chrono::high_resolution_clock::now();
+        osqp_status = OsqpItf::solveqp(QQ, cc, AA, bb, CC, lbdlbd, ubdubd, l, u, xx, true, false);
+        auto end_piqp = std::chrono::high_resolution_clock::now();
+        auto duration_piqp = std::chrono::duration_cast<std::chrono::milliseconds>(end_piqp - start_piqp).count();
+        LOG(INFO) << "OsQpltf::solve execution time: " << duration_piqp << " ms";
+
+        auto start_ooqp = std::chrono::high_resolution_clock::now();
+        ooqp_status = OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, x, true, false);
+        auto end_ooqp = std::chrono::high_resolution_clock::now();
+        auto duration_ooqp = std::chrono::duration_cast<std::chrono::milliseconds>(end_ooqp - start_ooqp).count();
+        LOG(INFO) << "OoQpItf::solve execution time: " << duration_ooqp << " ms";
+
 
         bool osqp_init = true;
-        if (!OoQpItf::solve(Q, c, A, b, C, lbd, ubd, l, u, xx, true, false)) {
+        if (!osqp_status) {
             printf("trajectory generation ooqp solver failed.\n");
             LOG(INFO) << "trajectory generation ooqp solver failed." ;
             osqp_init = false;
