@@ -6,7 +6,6 @@
 //#include "osqp_interface.hpp"
 #include "ooqp_interface.hpp"
 #include "osqp_solver.hpp"
-#include "piqp_interface.hpp"
 #include <boost/icl/interval_set.hpp>
 #include <Eigen/SparseCore>
 #include <queue>

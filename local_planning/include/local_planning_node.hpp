@@ -145,6 +145,26 @@ class LocalPlanningNode {
         double start_timestamp = init_simulator_response.start_timestamp;
         int ego_vehicle_id = init_simulator_response.ego_vehicle.id;
         std::vector<simulator::Lane> raw_lanes = init_simulator_response.lanes;
+
+        LOG(INFO) << "visualize lanes" << "id " << "left_id " << "right_id " << "center " << "left_boundary " << "right_boundary";
+        for (auto lane: raw_lanes) {
+            LOG(INFO) <<"lane in raw_lanes" << lane.id << " " << lane.left_id << " " << lane.right_id;
+            LOG(INFO) << "center points";
+            for (auto point: lane.center) {
+                LOG(INFO) << point.x << " " << point.y;
+            }
+            LOG(INFO) << "leftbound points";
+            for (auto point: lane.left_boundary) {
+                LOG(INFO) << point.x << " " << point.y;
+            }
+            LOG(INFO) << "rightbound points";
+            for (auto point: lane.right_boundary) {
+                LOG(INFO) << point.x << " " << point.y;
+            }
+        }
+        LOG(INFO) << "visualize lanes end"; 
+      
+
         std::vector<simulator::Vehicle> other_vehicles = init_simulator_response.other_vehicles;
         simulator::Vehicle driver_vehicle = init_simulator_response.ego_vehicle;
         int aim_lane_id = init_simulator_response.aim_lane_id;
@@ -155,10 +175,18 @@ class LocalPlanningNode {
         VehicleParam ego_vehicle_param = VehicleParam();
         State ego_vehicle_state;
         ego_vehicle_state.time_stamp = start_timestamp;
+        double time_stamp{0.0};
+
         ego_vehicle_state.vec_position(0) = driver_vehicle.center.x - ego_vehicle_param.d_cr() * cos(driver_vehicle.orientation);
         ego_vehicle_state.vec_position(1) = driver_vehicle.center.y - ego_vehicle_param.d_cr() * sin(driver_vehicle.orientation);
         ego_vehicle_state.angle = driver_vehicle.orientation;
         ego_vehicle_state.velocity = driver_vehicle.speed;
+
+        LOG(INFO) << "ego_vehicle vec_position";
+        LOG(INFO) << ego_vehicle_state.time_stamp << " " << ego_vehicle_state.vec_position(0) << " " << ego_vehicle_state.vec_position(1);
+        LOG(INFO) << "ego_vehicle angle" << "ego_vehicle velocity";
+        LOG(INFO) << ego_vehicle_state.angle << ego_vehicle_state.velocity;
+
         this->lock_.lock();
         this->ego_vehicle_ = Vehicle(ego_vehicle_id, ego_vehicle_param, ego_vehicle_state);
         this->lock_.unlock();
@@ -170,6 +198,27 @@ class LocalPlanningNode {
             this->visualizeEgoVehicle(this->ego_vehicle_);
             this->visualizeDriver(driver_vehicle);
             this->visualizeScenario(other_vehicles);
+
+            LOG(INFO) << "visualize ego_vehicle";
+            LOG(INFO) << "ego vehicle id" << this->ego_vehicle_.id();
+            LOG(INFO) << "ego vehicle center";
+            LOG(INFO) << this->ego_vehicle_.state().vec_position(0) << " " << this->ego_vehicle_.state().vec_position(1);
+            LOG(INFO) << "ego vehicle width" << this->ego_vehicle_.param().width();
+            LOG(INFO) << "ego vehicle length" << this->ego_vehicle_.param().length();
+            LOG(INFO) << "ego vehicle orientation" << this->ego_vehicle_.state().angle;
+            LOG(INFO) << "ego vehicle speed" << this->ego_vehicle_.state().velocity;    
+
+            LOG(INFO) << "output other vehicles";
+            for (auto vehicle: other_vehicles) {
+                LOG(INFO) << "other vehicle id" << vehicle.id;
+                LOG(INFO) << "other vehicle center";
+                LOG(INFO) << vehicle.center.x << " " << vehicle.center.y;
+                LOG(INFO) << "other vehicle width" << vehicle.width;
+                LOG(INFO) << "other vehicle length" << vehicle.length;
+                LOG(INFO) << "other vehicle orientation" << vehicle.orientation;
+                LOG(INFO) << "other vehicle speed" << vehicle.speed;
+            }
+            LOG(INFO) << "output other vehicles finiished";
             // 记录车辆的速度，加速度等信息
             std::string file_path = ros::package::getPath("local_planning") + "/record/state_record_" + std::to_string(test_count) + ".csv";
             std::ofstream data_file(file_path, std::ios::out|std::ios::app);
@@ -177,6 +226,7 @@ class LocalPlanningNode {
             data_file.close();
             // 进行规划
             auto start_time = ros::WallTime::now();
+            LOG(INFO) << "planning_horizon_" << this->planning_horizon_;
             ErrorType planning_result = this->local_planner_ptr_->planOnce(this->ego_vehicle_, raw_lanes, other_vehicles, aim_lane_id, this->planning_horizon_, control_signal);
             auto end_time = ros::WallTime::now();
             std::cout << "time consuming: " << (end_time - start_time).toNSec() / 1e6 << " ms" << std::endl;

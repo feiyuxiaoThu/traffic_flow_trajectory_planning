@@ -30,7 +30,7 @@ if(NOT OOQP_FOUND)
 endif()
 find_package(Osqp REQUIRED)
 find_package(Glog REQUIRED)
-find_package(piqp REQUIRED)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -153,7 +153,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/local_planning_node.cpp src/lane.cpp src/osqp_solver.cpp src/ooqp_interface.cpp src/piqp_interface.cpp src/state_transformer.cpp src/shape.cpp src/osqp_interface/osqp_interface.cpp src/osqp_interface/csc_matrix_conv.cpp)
+add_executable(${PROJECT_NAME}_node src/local_planning_node.cpp src/lane.cpp src/osqp_solver.cpp src/ooqp_interface.cpp  src/state_transformer.cpp src/shape.cpp src/osqp_interface/osqp_interface.cpp src/osqp_interface/csc_matrix_conv.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -171,7 +171,6 @@ target_link_libraries(${PROJECT_NAME}_node
   ${OOQP_LIBRARIES}
   glog
   osqp::osqp  
-  piqp::piqp
 )
 
 
